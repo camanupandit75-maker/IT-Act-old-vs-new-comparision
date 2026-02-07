@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tax Act Comparison Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg-dark: #0a0e1a;
+      --bg-card: #111827;
+      --bg-hover: #1f2937;
+      --border: #374151;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'SF Pro Text', sans-serif;
+      background: linear-gradient(135deg, #0a0e1a 0%, #1a1f2e 100%);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background: rgba(17, 24, 39, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 20px 40px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, var(--accent), #059669);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .logo-text h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .logo-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stats-header {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 40px 40px;
+    }
+
+    /* App Grid */
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      margin-bottom: 40px;
+    }
+
+    .app-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent), #059669);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .app-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px rgba(16, 185, 129, 0.15);
+    }
+
+    .app-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .app-icon {
+      width: 56px;
+      height: 56px;
+      background: rgba(16, 185, 129, 0.15);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 16px;
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .app-description {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .app-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .modal.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      max-width: 1200px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-header {
+      padding: 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      background: var(--bg-card);
+      z-index: 10;
+    }
+
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 24px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: var(--bg-hover);
+      color: var(--text-main);
+    }
+
+    .modal-body {
+      padding: 24px;
+    }
+
+    /* Section Table */
+    .search-bar {
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .comparison-table thead {
+      background: var(--bg-dark);
+      position: sticky;
+      top: 80px;
+    }
+
+    .comparison-table th {
+      padding: 12px 16px;
+      text-align: left;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      border-bottom: 2px solid var(--border);
+    }
+
+    .comparison-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .comparison-table tr:hover {
+      background: rgba(16, 185, 129, 0.05);
+    }
+
+    .section-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-family: 'SF Mono', Monaco, monospace;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .old-section {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .new-section {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .category-tag {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px 20px;
+      }
+
+      .container {
+        padding: 24px 20px;
+      }
+
+      .app-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal-content {
+        max-height: 100vh;
+        border-radius: 0;
+      }
+
+      .comparison-table {
+        font-size: 12px;
+      }
+
+      .comparison-table th,
+      .comparison-table td {
+        padding: 8px 12px;
+      }
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+      border-top: 1px solid var(--border);
+      margin-top: 60px;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">📋</div>
+        <div class="logo-text">
+          <h1>Income-tax Act Dashboard</h1>
+          <p>1961 vs 2025 Complete Comparison</p>
+        </div>
+      </div>
+      <div class="stats-header">
+        <div class="stat-item">
+          <span class="stat-label">Sections</span>
+          <span class="stat-value">819 → 536</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Reduction</span>
+          <span class="stat-value">37%</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Chapters</span>
+          <span class="stat-value">47 → 23</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="container">
+    <div class="app-grid">
+      <!-- App 1: Section Mapper -->
+      <div class="app-card" onclick="openModal('sectionMapper')">
+        <div class="app-icon">🔍</div>
+        <h2 class="app-title">Section-by-Section Mapper</h2>
+        <p class="app-description">
+          Search and compare every section from the 1961 Act with its equivalent in the 2025 Act. Includes 116+ comprehensive mappings.
+        </p>
+        <span class="app-badge">116 Sections Mapped</span>
+      </div>
+
+      <!-- App 2: Category Comparison -->
+      <div class="app-card" onclick="openModal('categoryView')">
+        <div class="app-icon">📊</div>
+        <h2 class="app-title">Topic-wise Comparison</h2>
+        <p class="app-description">
+          Compare changes by category: Salary, Business, Capital Gains, Deductions, TDS, Assessment, and more.
+        </p>
+        <span class="app-badge">15 Categories</span>
+      </div>
+
+      <!-- App 3: Key Changes -->
+      <div class="app-card" onclick="openModal('keyChanges')">
+        <div class="app-icon">⚡</div>
+        <h2 class="app-title">Major Changes Highlights</h2>
+        <p class="app-description">
+          Quick summary of the most impactful changes: Tax Year concept, TDS consolidation, penalty timelines, and more.
+        </p>
+        <span class="app-badge">10 Key Changes</span>
+      </div>
+
+      <!-- App 4: Deductions Guide -->
+      <div class="app-card" onclick="openModal('deductions')">
+        <div class="app-icon">💰</div>
+        <h2 class="app-title">Deductions Mapper (80C → 123)</h2>
+        <p class="app-description">
+          Map all Chapter VI-A deductions (80C, 80D, 80G, etc.) to their new section numbers in the 2025 Act.
+        </p>
+        <span class="app-badge">All Deductions Retained</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Section Mapper -->
+  <div id="sectionMapper" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">🔍 Section-by-Section Mapper</h2>
+        <button class="close-btn" onclick="closeModal('sectionMapper')">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="search-bar">
+          <input 
+            type="text" 
+            class="search-input" 
+            id="sectionSearch" 
+            placeholder="Search by section number, description, or category..."
+            onkeyup="filterSections()"
+          />
+        </div>
+        <table class="comparison-table" id="sectionTable">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Description</th>
+              <th>1961 Act</th>
+              <th>2025 Act</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="sectionTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Category View -->
+  <div id="categoryView" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">📊 Topic-wise Comparison</h2>
+        <button class="close-btn" onclick="closeModal('categoryView')">×</button>
+      </div>
+      <div class="modal-body" id="categoryContent">
+        <!-- Dynamic content loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Key Changes -->
+  <div id="keyChanges" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">⚡ Major Changes Highlights</h2>
+        <button class="close-btn" onclick="closeModal('keyChanges')">×</button>
+      </div>
+      <div class="modal-body" id="keyChangesContent">
+        <!-- Dynamic content loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Deductions -->
+  <div id="deductions" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 class="modal-title">💰 Deductions Mapper (Chapter VI-A)</h2>
+        <button class="close-btn" onclick="closeModal('deductions')">×</button>
+      </div>
+      <div class="modal-body" id="deductionsContent">
+        <!-- Dynamic content loaded here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>
+      Data sources: 
+      <a href="https://eztax.in/income-tax-act-2025/compare-old-new-section-codes" target="_blank">EZTax</a> · 
+      <a href="https://taxguru.in" target="_blank">TaxGuru</a> · 
+      <a href="https://incometaxindia.gov.in" target="_blank">Income Tax India</a>
+    </p>
+    <p style="margin-top: 12px;">
+      Always refer to official Income-tax Act 2025 and CBDT circulars for authoritative provisions.
+    </p>
+  </footer>
+
+  <script>
+    // Section data
+    const sections = [
+      { category: "Charge", desc: "Scope of total income", old: "5", new: "5", status: "Unchanged" },
+      { category: "Charge", desc: "Residence in India", old: "6", new: "6", status: "Unchanged" },
+      { category: "Salary", desc: "Salaries - Basis of charge", old: "15", new: "15", status: "Unchanged" },
+      { category: "Salary", desc: "Perquisites", old: "17(1)", new: "17", status: "Renumbered" },
+      { category: "Salary", desc: "Valuation of perquisites", old: "17(2)", new: "18", status: "Split" },
+      { category: "House Property", desc: "Income from house property", old: "22", new: "20", status: "Renumbered" },
+      { category: "House Property", desc: "Annual value determination", old: "23", new: "21", status: "Renumbered" },
+      { category: "House Property", desc: "Home loan interest deduction", old: "24", new: "22", status: "Renumbered" },
+      { category: "Business", desc: "Profits and gains of business", old: "28", new: "26", status: "Renumbered" },
+      { category: "Business", desc: "Depreciation", old: "32", new: "33", status: "Renumbered" },
+      { category: "Business", desc: "Tax audit", old: "44AB", new: "63", status: "Renumbered" },
+      { category: "Business", desc: "Presumptive taxation", old: "44AD", new: "58", status: "Consolidated" },
+      { category: "Capital Gains", desc: "Capital gains - Basis", old: "45", new: "67", status: "Renumbered" },
+      { category: "Capital Gains", desc: "Computation", old: "48", new: "70", status: "Renumbered" },
+      { category: "Capital Gains", desc: "Exemption - One house", old: "54", new: "82", status: "Renumbered" },
+      { category: "Capital Gains", desc: "Exemption - Bonds", old: "54EC", new: "85", status: "Renumbered" },
+      { category: "Other Sources", desc: "Income from other sources", old: "56", new: "92", status: "Renumbered" },
+      { category: "Set-off", desc: "Set-off between heads", old: "71", new: "99", status: "Renumbered" },
+      { category: "Set-off", desc: "Business loss carry forward", old: "72", new: "100", status: "Renumbered" },
+      { category: "Set-off", desc: "Capital loss carry forward", old: "74", new: "101", status: "Renumbered" },
+      { category: "Unexplained", desc: "Cash credits unexplained", old: "68", new: "102", status: "Renumbered" },
+      { category: "Unexplained", desc: "Unexplained investments", old: "69", new: "103", status: "Renumbered" },
+      { category: "Unexplained", desc: "Unexplained money", old: "69A", new: "104", status: "Renumbered" },
+      { category: "Deductions", desc: "LIC, PF, ELSS (80C)", old: "80C", new: "123", status: "Renumbered" },
+      { category: "Deductions", desc: "Employer NPS (80CCD)", old: "80CCD", new: "124", status: "Renumbered" },
+      { category: "Deductions", desc: "Health insurance (80D)", old: "80D", new: "126", status: "Renumbered" },
+      { category: "Deductions", desc: "Disability dependent (80DD)", old: "80DD", new: "127", status: "Renumbered" },
+      { category: "Deductions", desc: "Education loan interest (80E)", old: "80E", new: "129", status: "Renumbered" },
+      { category: "Deductions", desc: "Donations to charity (80G)", old: "80G", new: "133", status: "Renumbered" },
+      { category: "Deductions", desc: "Rent paid - no HRA (80GG)", old: "80GG", new: "134", status: "Renumbered" },
+      { category: "Deductions", desc: "Self disability (80U)", old: "80U", new: "154", status: "Renumbered" },
+      { category: "Rebate", desc: "Rebate for individuals (87A)", old: "87A", new: "156", status: "Renumbered" },
+      { category: "Return", desc: "Return - Who should file", old: "139(1)", new: "263(1)", status: "Renumbered" },
+      { category: "Return", desc: "Belated return", old: "139(4)", new: "263(4)", status: "Renumbered" },
+      { category: "Return", desc: "Revised return", old: "139(5)", new: "263(5)", status: "Renumbered" },
+      { category: "Return", desc: "PAN requirement", old: "139A", new: "262", status: "Consolidated" },
+      { category: "Assessment", desc: "Intimation u/s 143(1)", old: "143(1)", new: "267", status: "Renumbered" },
+      { category: "Assessment", desc: "Scrutiny assessment", old: "143(3)", new: "269", status: "Renumbered" },
+      { category: "Assessment", desc: "Income escaping assessment", old: "147", new: "279", status: "Renumbered" },
+      { category: "Rectification", desc: "Rectification of mistake", old: "154", new: "290", status: "Renumbered" },
+      { category: "TDS", desc: "TDS on salary", old: "192", new: "393", status: "Consolidated" },
+      { category: "TDS", desc: "TDS on contractor", old: "194C", new: "393", status: "Consolidated" },
+      { category: "TDS", desc: "TDS on rent", old: "194I", new: "393", status: "Consolidated" },
+      { category: "TDS", desc: "TDS on professional fees", old: "194J", new: "393", status: "Consolidated" },
+      { category: "TDS", desc: "Lower TDS certificate", old: "197", new: "394", status: "Renumbered" },
+      { category: "TCS", desc: "Higher TDS for non-filers", old: "206AB", new: "Removed", status: "Removed" },
+      { category: "Interest", desc: "Interest - non-filing", old: "234A", new: "423", status: "Renumbered" },
+      { category: "Interest", desc: "Interest - advance tax", old: "234B", new: "424", status: "Renumbered" },
+      { category: "Interest", desc: "Interest - deferment", old: "234C", new: "425", status: "Renumbered" },
+      { category: "Penalty", desc: "Penalty - underreporting", old: "270A", new: "438", status: "Renumbered" },
+      { category: "Penalty", desc: "Penalty - non-filing", old: "271F", new: "437", status: "Renumbered" }
+    ];
+
+    // Load section table
+    function loadSectionTable() {
+      const tbody = document.getElementById('sectionTableBody');
+      tbody.innerHTML = '';
+
+      sections.forEach(section => {
+        const row = `
+          <tr>
+            <td><span class="category-tag">${section.category}</span></td>
+            <td>${section.desc}</td>
+            <td><span class="section-badge old-section">${section.old}</span></td>
+            <td><span class="section-badge new-section">${section.new}</span></td>
+            <td style="font-size: 11px; color: var(--text-muted);">${section.status}</td>
+          </tr>
+        `;
+        tbody.innerHTML += row;
+      });
+    }
+
+    // Filter sections
+    function filterSections() {
+      const input = document.getElementById('sectionSearch');
+      const filter = input.value.toLowerCase();
+      const tbody = document.getElementById('sectionTableBody');
+      const rows = tbody.getElementsByTagName('tr');
+
+      for (let i = 0; i < rows.length; i++) {
+        const text = rows[i].textContent.toLowerCase();
+        rows[i].style.display = text.includes(filter) ? '' : 'none';
+      }
+    }
+
+    // Modal functions
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.add('active');
+
+      if (modalId === 'sectionMapper') {
+        loadSectionTable();
+      } else if (modalId === 'keyChanges') {
+        loadKeyChanges();
+      } else if (modalId === 'deductions') {
+        loadDeductions();
+      } else if (modalId === 'categoryView') {
+        loadCategoryView();
+      }
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // Load key changes
+    function loadKeyChanges() {
+      const content = document.getElementById('keyChangesContent');
+      content.innerHTML = `
+        <div style="display: grid; gap: 24px;">
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">1. Tax Year Concept</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              <strong>Old:</strong> Previous Year (PY) + Assessment Year (AY) = Dual system<br>
+              <strong>New:</strong> Unified "Tax Year" (April 1 - March 31) - Single concept
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">2. Structure Simplification</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              <strong>Sections:</strong> 819 → 536 (37% reduction)<br>
+              <strong>Chapters:</strong> 47 → 23 (51% reduction)<br>
+              <strong>Provisos:</strong> 1,200+ removed completely
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">3. TDS/TCS Consolidation</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              All TDS provisions (192-196) consolidated into Section 393<br>
+              Lower-rate certificates extended to ALL provisions<br>
+              Removed: Cash withdrawal TDS for return defaulters (206AB/206CCA)
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">4. Virtual Digital Assets</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              Cryptocurrencies, NFTs explicitly defined as taxable assets<br>
+              Clear rules for Web3 economy transactions<br>
+              Removed ambiguity from digital asset taxation
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">5. Faceless Assessment Default</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              Digital-first assessment becomes statutory standard<br>
+              Automatic adjustment for data inconsistencies (Section 143(1)(a))<br>
+              Physical assessment only by exception
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">6. Penalty Timelines</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              Fixed 6-month window for penalty orders from quarter-end<br>
+              Provides certainty for taxpayers and authorities<br>
+              Reduces indefinite exposure periods
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">7. Deductions Retained</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              ALL Chapter VI-A deductions preserved (80C, 80D, 80G, etc.)<br>
+              Only renumbered, not removed<br>
+              Standard deduction increased to ₹75,000
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">8. Presumptive Taxation</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              New concept: "Profit claimed to have been actually earned"<br>
+              More flexible for professionals and MSMEs<br>
+              44AD, 44ADA, 44AE consolidated into Section 58
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">9. Unexplained Income Clarity</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              Sections 68-69 series → 102-104 (renumbered)<br>
+              Language changed from "deemed" to mandatory taxability<br>
+              Reduced litigation on interpretation
+            </p>
+          </div>
+
+          <div style="padding: 20px; background: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--accent); border-radius: 8px;">
+            <h3 style="margin-bottom: 12px; color: var(--accent);">10. Definitions Consolidated</h3>
+            <p style="color: var(--text-muted); line-height: 1.6;">
+              Core definitions moved to Clause 2<br>
+              Only 15 primary definitions needed<br>
+              Contextual terms placed within relevant chapters
+            </p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Load deductions
+    function loadDeductions() {
+      const content = document.getElementById('deductionsContent');
+      const deductionData = [
+        { old: "80C", new: "123", desc: "LIC, PF, ELSS, NSC, PPF", limit: "₹1.5 lakh" },
+        { old: "80CCC", new: "124", desc: "Pension funds", limit: "Within 80C limit" },
+        { old: "80CCD", new: "124-125", desc: "NPS contribution", limit: "₹50,000 extra" },
+        { old: "80D", new: "126", desc: "Health insurance premium", limit: "₹25,000 / ₹50,000" },
+        { old: "80DD", new: "127", desc: "Maintenance of disabled dependent", limit: "₹75,000 / ₹1.25L" },
+        { old: "80DDB", new: "128", desc: "Medical treatment - specified diseases", limit: "₹40,000 / ₹1 lakh" },
+        { old: "80E", new: "129", desc: "Interest on education loan", limit: "No limit" },
+        { old: "80EE", new: "130", desc: "Interest on housing loan", limit: "₹50,000" },
+        { old: "80EEA", new: "131", desc: "Affordable housing interest", limit: "₹1.5 lakh" },
+        { old: "80EEB", new: "132", desc: "Electric vehicle loan interest", limit: "₹1.5 lakh" },
+        { old: "80G", new: "133", desc: "Donations to charitable institutions", limit: "50% / 100%" },
+        { old: "80GG", new: "134", desc: "Rent paid (no HRA)", limit: "₹5,000/month" },
+        { old: "80GGC", new: "137", desc: "Donations to political parties", limit: "No limit" },
+        { old: "80U", new: "154", desc: "Self disability", limit: "₹75,000 / ₹1.25L" },
+        { old: "80TTA", new: "153", desc: "Savings account interest", limit: "₹10,000" },
+        { old: "80TTB", new: "153", desc: "Senior citizen deposit interest", limit: "₹50,000" }
+      ];
+
+      let html = `
+        <p style="margin-bottom: 20px; color: var(--text-muted);">
+          All popular deductions from Chapter VI-A are <strong>retained</strong> in the new Act. Only section numbers have changed.
+        </p>
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th>Old Section</th>
+              <th>New Section</th>
+              <th>Description</th>
+              <th>Limit</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+      deductionData.forEach(item => {
+        html += `
+          <tr>
+            <td><span class="section-badge old-section">${item.old}</span></td>
+            <td><span class="section-badge new-section">${item.new}</span></td>
+            <td>${item.desc}</td>
+            <td style="font-weight: 600; color: var(--accent);">${item.limit}</td>
+          </tr>
+        `;
+      });
+
+      html += `
+          </tbody>
+        </table>
+        <div style="margin-top: 24px; padding: 16px; background: rgba(239, 68, 68, 0.1); border-left: 4px solid var(--danger); border-radius: 8px;">
+          <p style="color: var(--text-muted);">
+            <strong>Important:</strong> All deduction limits and conditions remain same as FY 2025-26. 
+            Standard deduction for salary increased to ₹75,000 (from ₹50,000).
+          </p>
+        </div>
+      `;
+
+      content.innerHTML = html;
+    }
+
+    // Load category view
+    function loadCategoryView() {
+      const content = document.getElementById('categoryContent');
+      const categories = [...new Set(sections.map(s => s.category))];
+
+      let html = '<div style="display: grid; gap: 20px;">';
+
+      categories.forEach(cat => {
+        const catSections = sections.filter(s => s.category === cat);
+        html += `
+          <div style="padding: 20px; background: var(--bg-dark); border-radius: 12px; border: 1px solid var(--border);">
+            <h3 style="margin-bottom: 16px; color: var(--accent); display: flex; align-items: center; gap: 8px;">
+              <span class="category-tag">${cat}</span>
+              <span style="font-size: 14px; color: var(--text-muted);">(${catSections.length} sections)</span>
+            </h3>
+            <div style="display: grid; gap: 8px;">
+        `;
+
+        catSections.slice(0, 5).forEach(section => {
+          html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(16, 185, 129, 0.05); border-radius: 6px;">
+              <span style="font-size: 13px; color: var(--text-muted);">${section.desc}</span>
+              <div style="display: flex; gap: 8px;">
+                <span class="section-badge old-section" style="font-size: 11px; padding: 2px 6px;">${section.old}</span>
+                <span style="color: var(--text-muted);">→</span>
+                <span class="section-badge new-section" style="font-size: 11px; padding: 2px 6px;">${section.new}</span>
+              </div>
+            </div>
+          `;
+        });
+
+        if (catSections.length > 5) {
+          html += `<p style="font-size: 12px; color: var(--text-muted); text-align: center;">+ ${catSections.length - 5} more sections</p>`;
+        }
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    // Close modal on outside click
+    window.onclick = function(event) {
+      if (event.target.classList.contains('modal')) {
+        event.target.classList.remove('active');
+      }
+    }
+  </script>
+</body>
+</html>
